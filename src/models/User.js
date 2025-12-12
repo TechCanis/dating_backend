@@ -8,10 +8,9 @@ const userSchema = new mongoose.Schema({
     age: { type: Number, required: true },
     profileImages: [{ type: String }], // URLs to images
     interests: [{ type: String }],
-    location: {
-        type: { type: String, default: 'Point' },
-        coordinates: [Number], // [longitude, latitude]
-    },
+    profileImages: [{ type: String }], // URLs to images
+    interests: [{ type: String }],
+    state: { type: String, required: true },
     preferences: {
         ageRange: { min: { type: Number, default: 18 }, max: { type: Number, default: 99 } },
         distance: { type: Number, default: 50 }, // km
@@ -20,6 +19,6 @@ const userSchema = new mongoose.Schema({
     isPremium: { type: Boolean, default: false },
 }, { timestamps: true });
 
-userSchema.index({ location: '2dsphere' });
+// userSchema.index({ location: '2dsphere' }); // Removed location index
 
 module.exports = mongoose.model('User', userSchema);

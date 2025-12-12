@@ -64,7 +64,10 @@ const getDiscoveryUsers = async (req, res) => {
     // 3. Filter by age preference (TODO)
     // 4. Filter by location/distance (TODO: GeoJSON query)
 
-    let filter = { _id: { $ne: user._id } };
+    let filter = {
+        _id: { $ne: user._id },
+        state: user.state // Match users in same state
+    };
 
     if (user.preferences.gender !== 'Everyone') {
         filter.gender = user.preferences.gender; // Assumes 'Men', 'Women' match
