@@ -17,7 +17,8 @@ const getUserProfile = async (req, res) => {
             interests: user.interests,
             profileImages: user.profileImages,
             preferences: user.preferences,
-            location: user.location,
+            state: user.state,
+            isPremium: user.isPremium,
         });
     } else {
         res.status(404).json({ message: 'User not found' });
