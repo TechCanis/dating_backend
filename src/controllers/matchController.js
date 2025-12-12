@@ -87,11 +87,6 @@ const getMatches = async (req, res) => {
     }
 };
 
-module.exports = { likeUser, getMatches, getPendingLikes };
-
-// @desc    Get pending likes (who liked me)
-// @route   GET /api/matches/likes
-// @access  Private
 const getPendingLikes = async (req, res) => {
     const userId = req.user._id;
 
@@ -118,3 +113,5 @@ const getPendingLikes = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+module.exports = { likeUser, getMatches, getPendingLikes };
