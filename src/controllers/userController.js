@@ -82,4 +82,29 @@ const getDiscoveryUsers = async (req, res) => {
     }
 };
 
-module.exports = { getUserProfile, updateUserProfile, getDiscoveryUsers };
+// @desc    Upgrade user to premium
+// @route   POST /api/users/premium
+// @access  Private
+const updatePremiumStatus = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        if (user) {
+            user.isPremium = true;
+            await user.save();
+            res.json({
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                isPremium: user.isPremium,
+                // Assuming generateToken is defined elsewhere or not needed for this response
+                // token: generateToken(user._id), 
+            });
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { getUserProfile, updateUserProfile, getDiscoveryUsers, updatePremiumStatus };
