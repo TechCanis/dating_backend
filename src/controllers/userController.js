@@ -59,25 +59,56 @@ const updateUserProfile = async (req, res) => {
 const getDiscoveryUsers = async (req, res) => {
     const user = req.user;
 
-    // Basic recommendation logic: 
-    // 1. Exclude current user
-    // 2. Filter by gender preference
-    // 3. Filter by age preference (TODO)
-    // 4. Filter by location/distance (TODO: GeoJSON query)
-
-    let filter = {
-        _id: { $ne: user._id },
-        state: user.state // Match users in same state
-    };
-
-    if (user.preferences.gender !== 'Everyone') {
-        filter.gender = user.preferences.gender; // Assumes 'Men', 'Women' match
-    }
-
     try {
-        const users = await User.find(filter).limit(10);
-        res.json(users);
+        // Base Filter: Always exclude current user
+        let baseFilter = {
+            _id: { $ne: user._id }
+        };
+
+        // 1. Gender Filter
+        if (user.preferences.gender !== 'Everyone') {
+            baseFilter.gender = user.preferences.gender;
+        }
+
+        // 2. Age Filter
+        if (user.preferences.ageRange) {
+            baseFilter.age = {
+                $gte: user.preferences.ageRange.min,
+                $lte: user.preferences.ageRange.max
+            };
+        }
+
+        // 3. Photos Only Filter
+        if (user.preferences.showPhotosOnly) {
+            baseFilter.profileImages = { $not: { $size: 0 } }; // Array not empty
+        }
+
+        // 4. Location (State) Filter Strategy
+        let localMatches = [];
+
+        // Primary Query: Match State
+        const localFilter = { ...baseFilter, state: user.state };
+        localMatches = await User.find(localFilter).limit(10);
+
+        // 5. Expand Search Logic
+        let expandedMatches = [];
+        if (localMatches.length < 10 && user.preferences.expandSearch) {
+            const limit = 10 - localMatches.length;
+            const excludeIds = [user._id, ...localMatches.map(u => u._id)];
+
+            const expandFilter = {
+                ...baseFilter,
+                _id: { $nin: excludeIds } // Exclude already found local matches
+            };
+
+            expandedMatches = await User.find(expandFilter).limit(limit);
+        }
+
+        // Combine
+        res.json([...localMatches, ...expandedMatches]);
+
     } catch (error) {
+        console.error('Discovery Error:', error);
         res.status(500).json({ message: error.message });
     }
 };

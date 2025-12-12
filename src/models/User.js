@@ -15,6 +15,8 @@ const userSchema = new mongoose.Schema({
         ageRange: { min: { type: Number, default: 18 }, max: { type: Number, default: 99 } },
         distance: { type: Number, default: 50 }, // km
         gender: { type: String, enum: ['Men', 'Women', 'Everyone'], default: 'Everyone' },
+        showPhotosOnly: { type: Boolean, default: false },
+        expandSearch: { type: Boolean, default: true },
     },
     isPremium: { type: Boolean, default: false },
 }, { timestamps: true });
