@@ -114,4 +114,31 @@ const getPendingLikes = async (req, res) => {
     }
 };
 
-module.exports = { likeUser, getMatches, getPendingLikes };
+const getSentLikes = async (req, res) => {
+    const userId = req.user._id;
+
+    try {
+        // Find matches where user1 is me, and isMatched is false (I liked them, no match from them yet)
+        const sentLikes = await Match.find({
+            user1: userId,
+            isMatched: false
+        }).populate('user2', 'name age profileImages state bio');
+
+        const formattedSentLikes = sentLikes.map(match => ({
+            _id: match.user2._id,
+            matchDocId: match._id,
+            name: match.user2.name,
+            age: match.user2.age,
+            profileImages: match.user2.profileImages,
+            state: match.user2.state,
+            bio: match.user2.bio,
+            likedAt: match.createdAt
+        }));
+
+        res.json(formattedSentLikes);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { likeUser, getMatches, getPendingLikes, getSentLikes };
