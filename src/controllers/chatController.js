@@ -99,4 +99,36 @@ const getMessages = async (req, res) => {
     }
 };
 
-module.exports = { sendMessage, getMessages };
+// @desc    Get conversation by user ID (finds matchId)
+// @route   GET /api/chat/user/:userId
+// @access  Private
+const getConversation = async (req, res) => {
+    const { userId: otherUserId } = req.params;
+    const currentUserId = req.user._id;
+
+    try {
+        const match = await Match.findOne({
+            $or: [
+                { user1: currentUserId, user2: otherUserId },
+                { user1: otherUserId, user2: currentUserId }
+            ]
+        });
+
+        if (!match) {
+            // No conversation found, return empty info
+            return res.json({ messages: [], matchId: null });
+        }
+
+        // Verify authorization (should represent one of the users)
+        if (match.user1.toString() !== currentUserId.toString() && match.user2.toString() !== currentUserId.toString()) {
+            return res.status(401).json({ message: 'Not authorized' });
+        }
+
+        const messages = await Message.find({ matchId: match._id }).sort({ createdAt: 1 });
+        res.json({ messages, matchId: match._id });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { sendMessage, getMessages, getConversation };
