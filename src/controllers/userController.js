@@ -19,6 +19,7 @@ const getUserProfile = async (req, res) => {
             preferences: user.preferences,
             state: user.state,
             isPremium: user.isPremium,
+            premiumExpiresAt: user.premiumExpiresAt,
         });
     } else {
         res.status(404).json({ message: 'User not found' });
@@ -118,17 +119,34 @@ const getDiscoveryUsers = async (req, res) => {
 // @access  Private
 const updatePremiumStatus = async (req, res) => {
     try {
+        const { durationInDays } = req.body; // Expect duration in days
         const user = await User.findById(req.user._id);
+
         if (user) {
+            const now = new Date();
+            let newExpiryDate;
+
+            // If already premium and not expired, extend from current expiry
+            if (user.isPremium && user.premiumExpiresAt && user.premiumExpiresAt > now) {
+                newExpiryDate = new Date(user.premiumExpiresAt);
+                newExpiryDate.setDate(newExpiryDate.getDate() + (durationInDays || 30));
+            } else {
+                // Otherwise start from now
+                newExpiryDate = new Date();
+                newExpiryDate.setDate(newExpiryDate.getDate() + (durationInDays || 30));
+            }
+
             user.isPremium = true;
+            user.premiumExpiresAt = newExpiryDate;
+
             await user.save();
+
             res.json({
                 _id: user._id,
                 name: user.name,
                 email: user.email,
                 isPremium: user.isPremium,
-                // Assuming generateToken is defined elsewhere or not needed for this response
-                // token: generateToken(user._id), 
+                premiumExpiresAt: user.premiumExpiresAt,
             });
         } else {
             res.status(404).json({ message: 'User not found' });

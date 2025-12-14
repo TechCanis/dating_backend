@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema({
         expandSearch: { type: Boolean, default: true },
     },
     isPremium: { type: Boolean, default: false },
+    premiumExpiresAt: { type: Date },
 }, { timestamps: true });
 
 // userSchema.index({ location: '2dsphere' }); // Removed location index
