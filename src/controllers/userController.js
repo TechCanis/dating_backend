@@ -138,4 +138,45 @@ const updatePremiumStatus = async (req, res) => {
     }
 };
 
-module.exports = { getUserProfile, updateUserProfile, getDiscoveryUsers, updatePremiumStatus };
+// @desc    Search users with filters
+// @route   GET /api/users/search
+// @access  Private
+const searchUsers = async (req, res) => {
+    try {
+        const { gender, minAge, maxAge, interests } = req.query;
+        const currentUser = req.user;
+
+        let query = {
+            _id: { $ne: currentUser._id } // Exclude current user
+        };
+
+        // Gender Filter
+        if (gender && gender !== 'Everyone') {
+            query.gender = gender;
+        }
+
+        // Age Filter
+        if (minAge || maxAge) {
+            query.age = {};
+            if (minAge) query.age.$gte = parseInt(minAge);
+            if (maxAge) query.age.$lte = parseInt(maxAge);
+        }
+
+        // Interests Filter (at least one matching interest)
+        if (interests) {
+            const interestList = interests.split(',').map(i => i.trim());
+            if (interestList.length > 0) {
+                query.interests = { $in: interestList };
+            }
+        }
+
+        const users = await User.find(query).limit(50); // Limit results
+        res.json(users);
+
+    } catch (error) {
+        console.error('Search Error:', error);
+        res.status(500).json({ message: 'Server Error during search' });
+    }
+};
+
+module.exports = { getUserProfile, updateUserProfile, getDiscoveryUsers, updatePremiumStatus, searchUsers };
