@@ -8,8 +8,6 @@ const userSchema = new mongoose.Schema({
     age: { type: Number, required: true },
     profileImages: [{ type: String }], // URLs to images
     interests: [{ type: String }],
-    profileImages: [{ type: String }], // URLs to images
-    interests: [{ type: String }],
     state: { type: String, required: true },
     preferences: {
         ageRange: { min: { type: Number, default: 18 }, max: { type: Number, default: 99 } },

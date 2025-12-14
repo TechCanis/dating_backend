@@ -122,7 +122,7 @@ const getSentLikes = async (req, res) => {
         const sentLikes = await Match.find({
             user1: userId,
             isMatched: false
-        }).populate('user2', 'name age profileImages state bio');
+        }).populate('user2');
 
         const formattedSentLikes = sentLikes.map(match => ({
             _id: match.user2._id,
