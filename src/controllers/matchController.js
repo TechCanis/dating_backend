@@ -66,8 +66,15 @@ const getMatches = async (req, res) => {
 
     try {
         const matches = await Match.find({
-            $or: [{ user1: userId }, { user2: userId }],
-            isMatched: true
+            $and: [
+                { $or: [{ user1: userId }, { user2: userId }] },
+                {
+                    $or: [
+                        { isMatched: true },
+                        { lastMessage: { $exists: true, $ne: null } }
+                    ]
+                }
+            ]
         }).populate('user1', 'name profileImages').populate('user2', 'name profileImages');
 
         // Format results to show "the other person"
