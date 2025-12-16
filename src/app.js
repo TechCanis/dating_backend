@@ -20,6 +20,7 @@ app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/matches', require('./routes/matchRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
 app.use('/api/upload', require('./routes/uploadRoutes'));
+app.use('/api/config', require('./routes/configRoutes'));
 app.use('/uploads', express.static('uploads'));
 
 app.get('/', (req, res) => {
