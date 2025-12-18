@@ -21,7 +21,7 @@ const appConfig = {
             'Painting', 'Gardening', 'Chess', 'Coding'
         ],
         genderOptions: [
-            'Male', 'Female', 'Non-binary', 'Prefer not to say'
+            'Men', 'Women', 'Other'
         ],
         maritalOptions: [
             'Single', 'In a relationship', 'Divorced',
