@@ -9,6 +9,9 @@ const userSchema = new mongoose.Schema({
     profileImages: [{ type: String }], // URLs to images
     interests: [{ type: String }],
     state: { type: String, required: true },
+    maritalStatus: { type: String }, // e.g. Single, Divorced
+    hobbies: [{ type: String }],
+    lookingFor: [{ type: String }], // e.g. Relationship, Friends
     preferences: {
         ageRange: { min: { type: Number, default: 18 }, max: { type: Number, default: 99 } },
         distance: { type: Number, default: 50 }, // km

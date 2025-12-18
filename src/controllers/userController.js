@@ -18,6 +18,9 @@ const getUserProfile = async (req, res) => {
             profileImages: user.profileImages,
             preferences: user.preferences,
             state: user.state,
+            maritalStatus: user.maritalStatus,
+            hobbies: user.hobbies,
+            lookingFor: user.lookingFor,
             isPremium: user.isPremium,
             premiumExpiresAt: user.premiumExpiresAt,
         });
@@ -38,6 +41,14 @@ const updateUserProfile = async (req, res) => {
         user.interests = req.body.interests || user.interests;
         user.profileImages = req.body.profileImages || user.profileImages;
         user.preferences = req.body.preferences || user.preferences;
+
+        // Add missing fields update logic
+        user.state = req.body.state || user.state;
+        user.maritalStatus = req.body.maritalStatus || user.maritalStatus;
+        user.hobbies = req.body.hobbies || user.hobbies;
+        user.lookingFor = req.body.lookingFor || user.lookingFor;
+        user.age = req.body.age || user.age;
+        user.gender = req.body.gender || user.gender;
         // ... add other updatable fields as needed
 
         const updatedUser = await user.save();
