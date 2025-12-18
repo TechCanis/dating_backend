@@ -21,10 +21,15 @@ const registerUser = async (req, res) => {
             return res.status(400).json({ message: 'User already exists' });
         }
 
+        // Normalize gender
+        let normalizedGender = gender;
+        if (gender === 'Male') normalizedGender = 'Men';
+        if (gender === 'Female') normalizedGender = 'Women';
+
         const user = await User.create({
             phoneNumber,
             name,
-            gender,
+            gender: normalizedGender,
             age,
             bio,
             interests,

@@ -48,7 +48,13 @@ const updateUserProfile = async (req, res) => {
         user.hobbies = req.body.hobbies || user.hobbies;
         user.lookingFor = req.body.lookingFor || user.lookingFor;
         user.age = req.body.age || user.age;
-        user.gender = req.body.gender || user.gender;
+
+        if (req.body.gender) {
+            let g = req.body.gender;
+            if (g === 'Male') g = 'Men';
+            if (g === 'Female') g = 'Women';
+            user.gender = g;
+        }
         // ... add other updatable fields as needed
 
         const updatedUser = await user.save();
