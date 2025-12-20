@@ -13,6 +13,7 @@ const generateToken = (id) => {
 // @access  Public
 const registerUser = async (req, res) => {
     // ... (existing register implementation, unchanged for now or update if needed)
+    // ... (existing register implementation, unchanged for now or update if needed)
     const { phoneNumber, name, gender, age, bio, interests, profileImages, state, interestedIn, maritalStatus, hobbies, lookingFor } = req.body;
 
     try {
@@ -77,6 +78,7 @@ const checkUser = async (req, res) => {
     }
 };
 
+// @desc    Login user (Verify OTP) - DEPRECATED for pure backend, but kept for legacy
 // @desc    Login user (Verify OTP) - DEPRECATED for pure backend, but kept for legacy
 // @route   POST /api/auth/login
 // @access  Public
