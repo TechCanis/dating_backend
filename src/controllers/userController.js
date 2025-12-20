@@ -214,4 +214,17 @@ const searchUsers = async (req, res) => {
     }
 };
 
-module.exports = { getUserProfile, updateUserProfile, getDiscoveryUsers, updatePremiumStatus, searchUsers };
+// @desc    Update FCM Token
+// @route   PUT /api/users/fcm-token
+// @access  Private
+const updateFcmToken = async (req, res) => {
+    const { fcmToken } = req.body;
+    try {
+        await User.findByIdAndUpdate(req.user._id, { fcmToken });
+        res.json({ message: 'FCM Token updated' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating FCM Token' });
+    }
+};
+
+module.exports = { getUserProfile, updateUserProfile, getDiscoveryUsers, updatePremiumStatus, searchUsers, updateFcmToken };

@@ -1,134 +1,79 @@
-const Message = require('../models/Message');
+const firebaseConfig = require('../config/firebase'); // Initialized firebase-admin
+const User = require('../models/User');
 const Match = require('../models/Match');
 
-// @desc    Send a message
+// @desc    Send a message (Write to RTDB & Send FCM)
 // @route   POST /api/chat
 // @access  Private
 const sendMessage = async (req, res) => {
-    const { matchId, text, recipientId } = req.body;
-    const senderId = req.user._id;
+    const { text, matchId, recipientId } = req.body;
+    const senderId = req.user._id.toString();
+
+    if (!text || !recipientId) {
+        return res.status(400).json({ message: 'Text and recipientId are required' });
+    }
 
     try {
-        let match;
+        // 1. Write to Firebase Realtime Database
+        // Structure: /chats/{minId_maxId}/{messageId}
+        const chatId = [senderId, recipientId].sort().join('_');
+        const db = firebaseConfig.database();
+        const ref = db.ref(`chats/${chatId}`);
+        const newMessageRef = ref.push();
 
-        if (matchId) {
-            match = await Match.findById(matchId);
-            if (!match) {
-                return res.status(404).json({ message: 'Match not found' });
-            }
-            // Verify user is part of the match
-            if (match.user1.toString() !== senderId.toString() && match.user2.toString() !== senderId.toString()) {
-                return res.status(401).json({ message: 'Not authorized' });
-            }
-        } else if (recipientId) {
-            // Check for existing match
-            match = await Match.findOne({
-                $or: [
-                    { user1: senderId, user2: recipientId },
-                    { user1: recipientId, user2: senderId }
-                ]
-            });
-
-            if (!match) {
-                // If NO match, check if sender is Premium
-                if (req.user.isPremium) {
-                    // Create a new "Forced" match
-                    match = await Match.create({
-                        user1: senderId,
-                        user2: recipientId,
-                        isMatched: true, // Force match so it appears in inbox
-                        lastMessage: text,
-                        lastMessageTime: Date.now()
-                    });
-                } else {
-                    return res.status(403).json({ message: 'You must match first or be Premium to message directly.' });
-                }
-            } else {
-                // Existing match found (maybe one-way like?). ensure isMatched=true if premium?
-                // For now just use it. If it was false (one-way), messaging usually requires isMatched=true.
-                // Let's auto-upgrade it to true if premium sender.
-                if (req.user.isPremium && !match.isMatched) {
-                    match.isMatched = true;
-                }
-                if (!match.isMatched) {
-                    return res.status(403).json({ message: 'Wait for them to match you back.' });
-                }
-            }
-        } else {
-            return res.status(400).json({ message: 'MatchId or RecipientId required' });
-        }
-
-        const newMessage = await Message.create({
-            matchId: match._id,
-            sender: senderId,
+        const messageData = {
+            senderId,
             text,
-        });
+            timestamp: firebaseConfig.database.ServerValue.TIMESTAMP
+        };
 
-        // Update last message in Match
-        match.lastMessage = text;
-        match.lastMessageTime = Date.now();
-        await match.save();
+        await newMessageRef.set(messageData);
 
-        res.status(201).json(newMessage);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-// @desc    Get messages for a match
-// @route   GET /api/chat/:matchId
-// @access  Private
-const getMessages = async (req, res) => {
-    const { matchId } = req.params;
-    const userId = req.user._id;
-
-    try {
-        const match = await Match.findById(matchId);
-        if (!match) {
-            return res.status(404).json({ message: 'Match not found' });
-        }
-
-        if (match.user1.toString() !== userId.toString() && match.user2.toString() !== userId.toString()) {
-            return res.status(401).json({ message: 'Not authorized' });
-        }
-
-        const messages = await Message.find({ matchId }).sort({ createdAt: 1 });
-        res.json(messages);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-// @desc    Get conversation by user ID (finds matchId)
-// @route   GET /api/chat/user/:userId
-// @access  Private
-const getConversation = async (req, res) => {
-    const { userId: otherUserId } = req.params;
-    const currentUserId = req.user._id;
-
-    try {
+        // 2. Update Match Document in MongoDB (for recent chats list)
+        // Find match where user1=sender, user2=recipient OR user1=recipient, user2=sender
         const match = await Match.findOne({
             $or: [
-                { user1: currentUserId, user2: otherUserId },
-                { user1: otherUserId, user2: currentUserId }
+                { user1: senderId, user2: recipientId },
+                { user1: recipientId, user2: senderId }
             ]
         });
 
-        if (!match) {
-            // No conversation found, return empty info
-            return res.json({ messages: [], matchId: null });
+        if (match) {
+            match.lastMessage = text;
+            match.lastMessageTime = new Date();
+            // match.isMatched = true; // Should be true already
+            await match.save();
         }
 
-        // Verify authorization (should represent one of the users)
-        if (match.user1.toString() !== currentUserId.toString() && match.user2.toString() !== currentUserId.toString()) {
-            return res.status(401).json({ message: 'Not authorized' });
+        // 3. Fetch Recipient for FCM Token
+        const recipient = await User.findById(recipientId);
+
+        if (recipient && recipient.fcmToken) {
+            // 4. Send FCM Notification
+            const message = {
+                notification: {
+                    title: req.user.name,
+                    body: text,
+                },
+                data: {
+                    type: 'CHAT',
+                    chatId: chatId,
+                    senderId: senderId,
+                    click_action: 'FLUTTER_NOTIFICATION_CLICK'
+                },
+                token: recipient.fcmToken
+            };
+
+            await firebaseConfig.messaging().send(message)
+                .catch(err => console.error('Error sending FCM:', err));
         }
 
-        const messages = await Message.find({ matchId: match._id }).sort({ createdAt: 1 });
-        res.json({ messages, matchId: match._id });
+        res.status(201).json({ message: 'Message sent', messageId: newMessageRef.key });
+
     } catch (error) {
+        console.error('Chat Error:', error);
         res.status(500).json({ message: error.message });
     }
 };
 
-module.exports = { sendMessage, getMessages, getConversation };
+module.exports = { sendMessage };
