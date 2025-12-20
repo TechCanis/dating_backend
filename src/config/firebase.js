@@ -15,6 +15,7 @@ try {
     console.log('Firebase Admin Initialized');
 } catch (error) {
     console.error('Firebase Admin Initialization Failed. Make sure serviceAccountKey.json exists in backend root.', error.message);
+    throw error; // Fail hard so we know init failed
 }
 
 module.exports = admin;

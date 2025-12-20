@@ -167,7 +167,14 @@ const firebaseRegister = async (req, res) => {
         const userExists = await User.findOne({ phoneNumber });
 
         if (userExists) {
-            return res.status(400).json({ message: 'User already exists' });
+            // User already exists, so we log them in instead of erroring.
+            return res.status(200).json({
+                _id: userExists._id,
+                name: userExists.name,
+                phoneNumber: userExists.phoneNumber,
+                token: generateToken(userExists._id),
+                isNewUser: false
+            });
         }
 
         const { name, gender, age, bio, interests, profileImages, state, interestedIn, maritalStatus, hobbies, lookingFor } = profileData;
