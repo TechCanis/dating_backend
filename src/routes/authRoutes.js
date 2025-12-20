@@ -4,6 +4,8 @@ const { registerUser, loginUser, checkUser } = require('../controllers/authContr
 
 router.post('/register', registerUser);
 router.post('/login', loginUser);
+router.post('/firebase-login', require('../controllers/authController').firebaseLogin);
+router.post('/firebase-register', require('../controllers/authController').firebaseRegister);
 router.post('/check-user', checkUser);
 
 module.exports = router;

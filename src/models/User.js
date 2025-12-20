@@ -21,6 +21,7 @@ const userSchema = new mongoose.Schema({
     },
     isPremium: { type: Boolean, default: false },
     premiumExpiresAt: { type: Date },
+    fcmToken: { type: String }, // For Push Notifications
 }, { timestamps: true });
 
 // userSchema.index({ location: '2dsphere' }); // Removed location index

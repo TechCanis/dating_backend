@@ -5,6 +5,7 @@ const { protect } = require('../middleware/authMiddleware');
 
 router.route('/profile').get(protect, getUserProfile).put(protect, updateUserProfile);
 router.post('/premium', protect, updatePremiumStatus);
+router.put('/fcm-token', protect, require('../controllers/userController').updateFcmToken);
 router.get('/discovery', protect, getDiscoveryUsers);
 router.get('/search', protect, searchUsers);
 
