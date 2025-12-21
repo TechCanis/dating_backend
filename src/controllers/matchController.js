@@ -62,7 +62,7 @@ const likeUser = async (req, res) => {
 // @route   GET /api/matches
 // @access  Private
 const getMatches = async (req, res) => {
-    const userId = req.user._id;
+    const userId = req.user._id.toString();
 
     try {
         const matches = await Match.find({
@@ -75,16 +75,20 @@ const getMatches = async (req, res) => {
                     ]
                 }
             ]
-        }).populate('user1', 'name profileImages').populate('user2', 'name profileImages');
+        }).populate('user1', 'name profileImages age bio interests state').populate('user2', 'name profileImages age bio interests state');
 
         // Format results to show "the other person"
         const formattedMatches = matches.map(match => {
-            const otherUser = match.user1._id.toString() === userId.toString() ? match.user2 : match.user1;
+            const isUser1 = match.user1._id.toString() === userId;
+            const otherUser = isUser1 ? match.user2 : match.user1;
+            const unread = isUser1 ? (match.unreadCount_user1 || 0) : (match.unreadCount_user2 || 0);
+
             return {
                 _id: match._id,
                 user: otherUser,
                 lastMessage: match.lastMessage,
-                updatedAt: match.updatedAt
+                updatedAt: match.updatedAt,
+                unreadCount: unread
             };
         });
 
