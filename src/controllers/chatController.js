@@ -41,8 +41,16 @@ const sendMessage = async (req, res) => {
         if (match) {
             match.lastMessage = text;
             match.lastMessageTime = new Date();
-            // match.isMatched = true; // Should be true already
             await match.save();
+        } else {
+            // Create new "Soft Match" / Conversation
+            await Match.create({
+                user1: senderId,
+                user2: recipientId,
+                isMatched: false,
+                lastMessage: text,
+                lastMessageTime: new Date()
+            });
         }
 
         // 3. Fetch Recipient for FCM Token
@@ -76,4 +84,60 @@ const sendMessage = async (req, res) => {
     }
 };
 
-module.exports = { sendMessage };
+// @desc    Get messages for a specific chat (API Fallback)
+// @route   GET /api/chat/:matchId
+// @access  Private
+const getMessages = async (req, res) => {
+    const { matchId } = req.params;
+    const currentUserId = req.user._id.toString();
+
+    try {
+        const chatId = [currentUserId, matchId].sort().join('_');
+        const db = firebaseConfig.database();
+        const ref = db.ref(`chats/${chatId}`);
+
+        const snapshot = await ref.orderByChild('timestamp').once('value');
+        const messages = [];
+
+        snapshot.forEach(child => {
+            messages.push(child.val());
+        });
+
+        res.json(messages);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Get all active conversations
+// @route   GET /api/chat
+// @access  Private
+const getAllConversations = async (req, res) => {
+    const userId = req.user._id;
+
+    try {
+        const matches = await Match.find({
+            $and: [
+                { $or: [{ user1: userId }, { user2: userId }] },
+                { lastMessage: { $exists: true, $ne: null } }
+            ]
+        }).populate('user1', 'name profileImages').populate('user2', 'name profileImages')
+            .sort({ lastMessageTime: -1 });
+
+        const formattedMatches = matches.map(match => {
+            const otherUser = match.user1._id.toString() === userId.toString() ? match.user2 : match.user1;
+            return {
+                _id: match._id,
+                user: otherUser,
+                lastMessage: match.lastMessage,
+                updatedAt: match.updatedAt || match.lastMessageTime
+            };
+        });
+
+        res.json(formattedMatches);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { sendMessage, getMessages, getAllConversations };
