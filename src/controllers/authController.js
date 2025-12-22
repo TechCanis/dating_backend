@@ -179,7 +179,7 @@ const firebaseRegister = async (req, res) => {
             });
         }
 
-        const { name, gender, age, bio, interests, profileImages, state, interestedIn, maritalStatus, hobbies, lookingFor } = profileData;
+        const { name, gender, age, dob, bio, interests, profileImages, state, interestedIn, maritalStatus, hobbies, lookingFor } = profileData;
 
         // Normalize gender
         let normalizedGender = gender;
@@ -191,6 +191,7 @@ const firebaseRegister = async (req, res) => {
             name,
             gender: normalizedGender,
             age,
+            dob,
             bio,
             interests,
             profileImages,

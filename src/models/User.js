@@ -6,6 +6,7 @@ const userSchema = new mongoose.Schema({
     gender: { type: String, enum: ['Men', 'Women', 'Other'], required: true },
     bio: { type: String },
     age: { type: Number, required: true },
+    dob: { type: Date },
     profileImages: [{ type: String }], // URLs to images
     interests: [{ type: String }],
     state: { type: String, required: true },

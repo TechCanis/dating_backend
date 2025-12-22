@@ -13,6 +13,7 @@ const getUserProfile = async (req, res) => {
             phoneNumber: user.phoneNumber,
             gender: user.gender,
             age: user.age,
+            dob: user.dob,
             bio: user.bio,
             interests: user.interests,
             profileImages: user.profileImages,
@@ -47,7 +48,23 @@ const updateUserProfile = async (req, res) => {
         user.maritalStatus = req.body.maritalStatus || user.maritalStatus;
         user.hobbies = req.body.hobbies || user.hobbies;
         user.lookingFor = req.body.lookingFor || user.lookingFor;
-        user.age = req.body.age || user.age;
+        user.lookingFor = req.body.lookingFor || user.lookingFor;
+
+        if (req.body.dob) {
+            user.dob = req.body.dob;
+            // Recalculate age from DOB
+            const dobDate = new Date(user.dob);
+            const today = new Date();
+            let age = today.getFullYear() - dobDate.getFullYear();
+            const m = today.getMonth() - dobDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < dobDate.getDate())) {
+                age--;
+            }
+            user.age = age;
+        } else if (req.body.age) {
+            // Fallback if only age provided (legacy/admin?)
+            user.age = req.body.age;
+        }
 
         if (req.body.gender) {
             let g = req.body.gender;
@@ -227,4 +244,16 @@ const updateFcmToken = async (req, res) => {
     }
 };
 
-module.exports = { getUserProfile, updateUserProfile, getDiscoveryUsers, updatePremiumStatus, searchUsers, updateFcmToken };
+// @desc    Delete user account
+// @route   DELETE /api/users/profile
+// @access  Private
+const deleteUser = async (req, res) => {
+    try {
+        await User.findByIdAndDelete(req.user._id);
+        res.json({ message: 'User deleted' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting user' });
+    }
+};
+
+module.exports = { getUserProfile, updateUserProfile, getDiscoveryUsers, updatePremiumStatus, searchUsers, updateFcmToken, deleteUser };
