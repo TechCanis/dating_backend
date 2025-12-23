@@ -8,6 +8,12 @@ const connectDB = require('./config/db');
 connectDB();
 
 const app = express();
+const http = require('http');
+const server = http.createServer(app);
+const socket = require('./socket');
+
+// Initialize Socket.IO
+socket.init(server);
 
 // Middleware
 app.use(cors());
@@ -29,6 +35,6 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

@@ -1,12 +1,11 @@
-const firebaseConfig = require('../config/firebase'); // Initialized firebase-admin
-const User = require('../models/User');
-const Match = require('../models/Match');
+const socket = require('../socket');
+const Message = require('../models/Message');
 
-// @desc    Send a message (Write to RTDB & Send FCM)
+// @desc    Send a message (Write to MongoDB & Emit Socket Event)
 // @route   POST /api/chat
 // @access  Private
 const sendMessage = async (req, res) => {
-    const { text, matchId, recipientId } = req.body;
+    const { text, recipientId } = req.body;
     const senderId = req.user._id.toString();
 
     if (!text || !recipientId) {
@@ -14,24 +13,8 @@ const sendMessage = async (req, res) => {
     }
 
     try {
-        // 1. Write to Firebase Realtime Database
-        // Structure: /chats/{minId_maxId}/{messageId}
-        const chatId = [senderId, recipientId].sort().join('_');
-        const db = firebaseConfig.database();
-        const ref = db.ref(`chats/${chatId}`);
-        const newMessageRef = ref.push();
-
-        const messageData = {
-            senderId,
-            text,
-            timestamp: firebaseConfig.database.ServerValue.TIMESTAMP
-        };
-
-        await newMessageRef.set(messageData);
-
-        // 2. Update Match Document in MongoDB (for recent chats list)
-        // Find match where user1=sender, user2=recipient OR user1=recipient, user2=sender
-        const match = await Match.findOne({
+        // 1. Find or Create Match
+        let match = await Match.findOne({
             $or: [
                 { user1: senderId, user2: recipientId },
                 { user1: recipientId, user2: senderId }
@@ -41,62 +24,56 @@ const sendMessage = async (req, res) => {
         if (match) {
             match.lastMessage = text;
             match.lastMessageTime = new Date();
-
             // Increment Unread Count
             if (match.user1.toString() === recipientId) {
                 match.unreadCount_user1 = (match.unreadCount_user1 || 0) + 1;
             } else {
                 match.unreadCount_user2 = (match.unreadCount_user2 || 0) + 1;
             }
-            console.log(`Chat: Updated unread counts. U1: ${match.unreadCount_user1}, U2: ${match.unreadCount_user2}`);
             await match.save();
         } else {
-            // Create new "Soft Match" / Conversation
-            await Match.create({
+            // Create new Match
+            match = await Match.create({
                 user1: senderId,
                 user2: recipientId,
                 isMatched: false,
                 lastMessage: text,
                 lastMessageTime: new Date(),
-                unreadCount_user1: senderId === recipientId ? 1 : 0, // Should not happen self-msg
-                unreadCount_user2: senderId !== recipientId ? 1 : 0  // Recipient (user2) gets 1 unread
+                unreadCount_user1: senderId === recipientId ? 1 : 0,
+                unreadCount_user2: senderId !== recipientId ? 1 : 0
             });
-            console.log('Chat: Created new conversation with unread counts.');
-            // Note: In create above, I assumed sender is user1. If I enforce order elsewhere, might differ.
-            // But usually sender=user1 for new creation is fine.
-            // Better to be safe: user1 is senderId, user2 is recipientId.
-            // So unreadCount_user2 = 1.
         }
 
-        // 3. Signal Firebase for "List Refresh" (Lightweight update)
-        console.log(`Chat: Signaling update to user_updates/${recipientId}/last_update`);
-        await db.ref(`user_updates/${recipientId}/last_update`).set(firebaseConfig.database.ServerValue.TIMESTAMP);
+        // 2. Create Message in MongoDB
+        const message = await Message.create({
+            matchId: match._id,
+            sender: senderId,
+            text: text,
+            read: false
+        });
 
+        // 3. Emit Socket Event
+        const io = socket.getIo();
 
-        // 4. Fetch Recipient for FCM Token
-        const recipient = await User.findById(recipientId);
+        // Emit to recipient
+        io.to(recipientId).emit('new_message', {
+            _id: message._id,
+            matchId: match._id,
+            sender: senderId,
+            text: text,
+            createdAt: message.createdAt
+        });
 
-        if (recipient && recipient.fcmToken) {
-            // 5. Send FCM Notification
-            const message = {
-                notification: {
-                    title: req.user.name,
-                    body: text,
-                },
-                data: {
-                    type: 'CHAT',
-                    chatId: chatId,
-                    senderId: senderId,
-                    click_action: 'FLUTTER_NOTIFICATION_CLICK'
-                },
-                token: recipient.fcmToken
-            };
+        // Emit to sender (optional, can be useful for confirmation or multi-device sync)
+        io.to(senderId).emit('new_message', {
+            _id: message._id,
+            matchId: match._id,
+            sender: senderId,
+            text: text,
+            createdAt: message.createdAt
+        });
 
-            await firebaseConfig.messaging().send(message)
-                .catch(err => console.error('Error sending FCM:', err));
-        }
-
-        res.status(201).json({ message: 'Message sent', messageId: newMessageRef.key });
+        res.status(201).json(message);
 
     } catch (error) {
         console.error('Chat Error:', error);
@@ -104,24 +81,45 @@ const sendMessage = async (req, res) => {
     }
 };
 
-// @desc    Get messages for a specific chat (API Fallback)
+// @desc    Get messages for a specific chat (from MongoDB)
 // @route   GET /api/chat/:matchId
 // @access  Private
 const getMessages = async (req, res) => {
-    const { matchId } = req.params;
+    const { matchId } = req.params; // potentially matchId or recipientId?
+    // The previous implementation used "matchId" in params but calculated chatId from user IDs.
+    // However, the route says /:matchId.
+    // If the frontend is passing the Match ObjectID, we can query by matchId.
+    // If the frontend is passing the OTHER USER ID, we have to find the match first.
+
+    // Let's assume for now the frontend might be passing a Match ID OR User ID.
+    // To be safe and consistent with previous logic (which calculated chatId from IDs),
+    // let's check if the param is a valid MatchId, if not assume it's a User ID.
+
+    // Actually, looking at previous existing code:
+    // const chatId = [currentUserId, matchId].sort().join('_');
+    // It treated `matchId` param as the `otherUserId` !!
+    // This is confusing naming in the old code. 
+
+    // Let's stick to the behavior: logic implies `matchId` param IS `otherUserId`.
+    // I should find the Match document first.
+
+    const otherUserId = req.params.matchId;
     const currentUserId = req.user._id.toString();
 
     try {
-        const chatId = [currentUserId, matchId].sort().join('_');
-        const db = firebaseConfig.database();
-        const ref = db.ref(`chats/${chatId}`);
-
-        const snapshot = await ref.orderByChild('timestamp').once('value');
-        const messages = [];
-
-        snapshot.forEach(child => {
-            messages.push(child.val());
+        const match = await Match.findOne({
+            $or: [
+                { user1: currentUserId, user2: otherUserId },
+                { user1: otherUserId, user2: currentUserId }
+            ]
         });
+
+        if (!match) {
+            return res.json([]); // No conversation yet
+        }
+
+        const messages = await Message.find({ matchId: match._id })
+            .sort({ createdAt: 1 }); // Oldest first
 
         res.json(messages);
     } catch (error) {
