@@ -1,5 +1,6 @@
 const socket = require('../socket');
 const Message = require('../models/Message');
+const Match = require('../models/Match');
 
 // @desc    Send a message (Write to MongoDB & Emit Socket Event)
 // @route   POST /api/chat
