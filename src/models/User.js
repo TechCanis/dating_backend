@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({
     profileImages: [{ type: String }], // URLs to images
     interests: [{ type: String }],
     state: { type: String, required: true },
-    city: { type: String, required: true },
+    city: { type: String },
     maritalStatus: { type: String }, // e.g. Single, Divorced
     hobbies: [{ type: String }],
     lookingFor: [{ type: String }], // e.g. Relationship, Friends
