@@ -45,9 +45,9 @@ const updateUserProfile = async (req, res) => {
 
         // Add missing fields update logic
         user.state = req.body.state || user.state;
+        user.city = req.body.city || user.city;
         user.maritalStatus = req.body.maritalStatus || user.maritalStatus;
         user.hobbies = req.body.hobbies || user.hobbies;
-        user.lookingFor = req.body.lookingFor || user.lookingFor;
         user.lookingFor = req.body.lookingFor || user.lookingFor;
 
         if (req.body.dob) {
@@ -62,7 +62,6 @@ const updateUserProfile = async (req, res) => {
             }
             user.age = age;
         } else if (req.body.age) {
-            // Fallback if only age provided (legacy/admin?)
             user.age = req.body.age;
         }
 
@@ -72,7 +71,6 @@ const updateUserProfile = async (req, res) => {
             if (g === 'Female') g = 'Women';
             user.gender = g;
         }
-        // ... add other updatable fields as needed
 
         const updatedUser = await user.save();
 
@@ -81,6 +79,8 @@ const updateUserProfile = async (req, res) => {
             name: updatedUser.name,
             phoneNumber: updatedUser.phoneNumber,
             bio: updatedUser.bio,
+            state: updatedUser.state,
+            city: updatedUser.city,
             // ...
         });
     } else {
@@ -121,24 +121,17 @@ const getDiscoveryUsers = async (req, res) => {
             query.profileImages = { $not: { $size: 0 } }; // Array not empty
         }
 
-        // 4. Location (State) Filter
-        // If expandSearch is FALSE, we strict filter by state.
-        // If TRUE, we do NOT filter by state (show everyone matching other criteria).
+        // 4. Location (State/City) Filter
+        // If expandSearch is FALSE, we strict filter by state AND city if available
         if (!user.preferences.expandSearch) {
-            query.state = user.state;
+            if (user.state) query.state = user.state;
+            if (user.city) query.city = user.city;
         }
 
         // Execute Query with Pagination
-        // We use .lean() for faster execution if we don't need mongoose document checks,
-        // but here standard find is fine.
         const users = await User.find(query)
             .skip(skip)
             .limit(limit);
-        // .sort({ createdAt: -1 }); // Optional: sort by newest first?
-
-        // Note: For a "seamless" infinite scroll with random-ish order,
-        // usually we'd use a cursor or random seed, but skip/limit is sufficient for
-        // "more than thousand users" in a basic implementation.
 
         res.json(users);
 
@@ -195,7 +188,7 @@ const updatePremiumStatus = async (req, res) => {
 // @access  Private
 const searchUsers = async (req, res) => {
     try {
-        const { gender, minAge, maxAge, interests } = req.query;
+        const { gender, minAge, maxAge, interests, city, state } = req.query;
         const currentUser = req.user;
 
         let query = {
@@ -221,6 +214,10 @@ const searchUsers = async (req, res) => {
                 query.interests = { $in: interestList };
             }
         }
+
+        // Location Filter (Search)
+        if (state) query.state = state;
+        if (city) query.city = city;
 
         const users = await User.find(query).limit(50); // Limit results
         res.json(users);
