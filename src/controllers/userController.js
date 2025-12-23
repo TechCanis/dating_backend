@@ -19,6 +19,7 @@ const getUserProfile = async (req, res) => {
             profileImages: user.profileImages,
             preferences: user.preferences,
             state: user.state,
+            city: user.city,
             maritalStatus: user.maritalStatus,
             hobbies: user.hobbies,
             lookingFor: user.lookingFor,
