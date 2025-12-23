@@ -93,21 +93,24 @@ const updateUserProfile = async (req, res) => {
 // @access  Private
 const getDiscoveryUsers = async (req, res) => {
     const user = req.user;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
     try {
         // Base Filter: Always exclude current user
-        let baseFilter = {
+        let query = {
             _id: { $ne: user._id }
         };
 
         // 1. Gender Filter
         if (user.preferences.gender !== 'Everyone') {
-            baseFilter.gender = user.preferences.gender;
+            query.gender = user.preferences.gender;
         }
 
         // 2. Age Filter
         if (user.preferences.ageRange) {
-            baseFilter.age = {
+            query.age = {
                 $gte: user.preferences.ageRange.min,
                 $lte: user.preferences.ageRange.max
             };
@@ -115,32 +118,29 @@ const getDiscoveryUsers = async (req, res) => {
 
         // 3. Photos Only Filter
         if (user.preferences.showPhotosOnly) {
-            baseFilter.profileImages = { $not: { $size: 0 } }; // Array not empty
+            query.profileImages = { $not: { $size: 0 } }; // Array not empty
         }
 
-        // 4. Location (State) Filter Strategy
-        let localMatches = [];
-
-        // Primary Query: Match State
-        const localFilter = { ...baseFilter, state: user.state };
-        localMatches = await User.find(localFilter).limit(10);
-
-        // 5. Expand Search Logic
-        let expandedMatches = [];
-        if (localMatches.length < 10 && user.preferences.expandSearch) {
-            const limit = 10 - localMatches.length;
-            const excludeIds = [user._id, ...localMatches.map(u => u._id)];
-
-            const expandFilter = {
-                ...baseFilter,
-                _id: { $nin: excludeIds } // Exclude already found local matches
-            };
-
-            expandedMatches = await User.find(expandFilter).limit(limit);
+        // 4. Location (State) Filter
+        // If expandSearch is FALSE, we strict filter by state.
+        // If TRUE, we do NOT filter by state (show everyone matching other criteria).
+        if (!user.preferences.expandSearch) {
+            query.state = user.state;
         }
 
-        // Combine
-        res.json([...localMatches, ...expandedMatches]);
+        // Execute Query with Pagination
+        // We use .lean() for faster execution if we don't need mongoose document checks,
+        // but here standard find is fine.
+        const users = await User.find(query)
+            .skip(skip)
+            .limit(limit);
+        // .sort({ createdAt: -1 }); // Optional: sort by newest first?
+
+        // Note: For a "seamless" infinite scroll with random-ish order,
+        // usually we'd use a cursor or random seed, but skip/limit is sufficient for
+        // "more than thousand users" in a basic implementation.
+
+        res.json(users);
 
     } catch (error) {
         console.error('Discovery Error:', error);

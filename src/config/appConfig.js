@@ -1,3 +1,19 @@
+const cities = require('./cities.json');
+
+// Process cities into a map: State -> [City Names]
+const citiesByState = {};
+cities.forEach(city => {
+    if (!citiesByState[city.state]) {
+        citiesByState[city.state] = [];
+    }
+    citiesByState[city.state].push(city.name);
+});
+
+// Sort cities for better UX
+Object.keys(citiesByState).forEach(state => {
+    citiesByState[state].sort();
+});
+
 const appConfig = {
     // Dropdown Lists
     lists: {
@@ -12,6 +28,7 @@ const appConfig = {
             'Dadra and Nagar Haveli and Daman and Diu', 'Delhi',
             'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry'
         ],
+        citiesByState: citiesByState,
         interestOptions: [
             'Music', 'Movies', 'Travel', 'Fitness', 'Cooking',
             'Art', 'Tech', 'Books', 'Gaming', 'Outdoors'
