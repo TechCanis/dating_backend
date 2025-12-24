@@ -95,7 +95,10 @@ const appConfig = {
         ageMin: 18,
         ageMax: 60,
         searchRadiusKm: 100
-    }
+    },
+
+    // OTP Mode: 0=Test, 1=Firebase, 2=Otpless
+    otpMode: process.env.OTP_MODE ? parseInt(process.env.OTP_MODE) : 1
 };
 
 module.exports = appConfig;

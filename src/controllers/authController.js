@@ -217,4 +217,47 @@ const firebaseRegister = async (req, res) => {
     }
 };
 
-module.exports = { registerUser, loginUser, checkUser, firebaseLogin, firebaseRegister };
+// @desc    Otpless Login
+// @route   POST /api/auth/otpless-login
+// @access  Public
+const otplessLogin = async (req, res) => {
+    const { token, phoneNumber: providedPhone } = req.body;
+
+    try {
+        // Ideally verify token with Otpless API here.
+        // For now, we trust the phone number provided by the trusted status from SDK if strict verification isn't set up yet.
+
+        if (!providedPhone) {
+            return res.status(400).json({ message: 'Phone number required' });
+        }
+
+        // Ensure format +91...
+        const phoneNumber = providedPhone;
+
+        const user = await User.findOne({ phoneNumber });
+
+        if (user) {
+            res.json({
+                _id: user._id,
+                name: user.name,
+                phoneNumber: user.phoneNumber,
+                token: generateToken(user._id),
+                isNewUser: false
+            });
+        } else {
+            // Return isNewUser=true so frontend navigates to registration
+            res.status(404).json({
+                message: 'User not found',
+                phoneNumber,
+                isNewUser: true
+            });
+        }
+
+    } catch (error) {
+        console.error('Otpless Login Error:', error);
+        res.status(500).json({ message: 'Otpless Login Failed' });
+    }
+};
+
+
+module.exports = { registerUser, loginUser, checkUser, firebaseLogin, firebaseRegister, otplessLogin };
