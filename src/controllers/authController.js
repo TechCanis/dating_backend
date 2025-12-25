@@ -260,4 +260,84 @@ const otplessLogin = async (req, res) => {
 };
 
 
-module.exports = { registerUser, loginUser, checkUser, firebaseLogin, firebaseRegister, otplessLogin };
+// @desc    Create Demo Account
+// @route   POST /api/auth/create-demo-account
+// @access  Public
+const createDemoAccount = async (req, res) => {
+    const {
+        name, phoneNumber, gender, dob, bio,
+        state, city,
+        interestedIn, maritalStatus, hobbies, lookingFor, interests
+    } = req.body;
+
+    let profileImages = req.body.profileImages || [];
+
+    // Handle File Uploads (Multipart)
+    if (req.files && req.files.length > 0) {
+        const protocol = req.protocol;
+        const host = req.get('host');
+        profileImages = req.files.map(file => `${protocol}://${host}/uploads/${file.filename}`);
+    } else if (typeof profileImages === 'string') {
+        profileImages = [profileImages];
+    }
+
+    try {
+        const userExists = await User.findOne({ phoneNumber });
+
+        if (userExists) {
+            return res.status(400).json({ message: 'User already exists' });
+        }
+
+        // Calculate age from DOB
+        let age = 18; // Default
+        if (dob) {
+            const birthDate = new Date(dob);
+            const today = new Date();
+            age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+        }
+
+        // Normalize gender
+        let normalizedGender = gender;
+        if (gender === 'Male') normalizedGender = 'Men';
+        if (gender === 'Female') normalizedGender = 'Women';
+
+        const user = await User.create({
+            phoneNumber,
+            name,
+            gender: normalizedGender,
+            age,
+            dob,
+            bio,
+            interests: interests || [],
+            profileImages: profileImages || [],
+            state,
+            city,
+            maritalStatus,
+            hobbies: hobbies || [],
+            lookingFor: lookingFor || [],
+            user_type: 'demo',
+            preferences: {
+                gender: interestedIn || 'Everyone'
+            }
+        });
+
+        if (user) {
+            res.status(201).json({
+                _id: user._id,
+                name: user.name,
+                phoneNumber: user.phoneNumber,
+                token: generateToken(user._id),
+            });
+        } else {
+            res.status(400).json({ message: 'Invalid user data' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { registerUser, loginUser, checkUser, firebaseLogin, firebaseRegister, otplessLogin, createDemoAccount };

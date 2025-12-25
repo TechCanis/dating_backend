@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Demo Account - Dating App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF4B7D;
+            --primary-gradient: linear-gradient(135deg, #FF4B7D 0%, #FF8FA3 100%);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-main: #FFFFFF;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --bg-dark: #0F172A;
+            --input-bg: rgba(255, 255, 255, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image:
+                radial-gradient(at 0% 0%, rgba(255, 75, 125, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(100, 100, 255, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(255, 75, 125, 0.15) 0px, transparent 50%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-main);
+            padding: 40px 20px;
+        }
+
+        .container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 700px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-align: center;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+
+        .form-section {
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .form-section h3 {
+            font-size: 18px;
+            color: var(--text-main);
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .col {
+            flex: 1;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="tel"],
+        input[type="date"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--input-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #FF4B7D;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        input[type="file"] {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            width: 100%;
+        }
+
+        /* Checkbox Grid */
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .checkbox-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .checkbox-item input {
+            transform: scale(1.2);
+            accent-color: #FF4B7D;
+        }
+
+        /* Dark Theme Date Picker Hack */
+        input[type="date"] {
+            color-scheme: dark;
+        }
+
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 16px;
+        }
+
+        select option {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+        }
+
+        .helper-text {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 4px;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(255, 75, 125, 0.5);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .success-message {
+            display: none;
+            margin-top: 24px;
+            padding: 20px;
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .success-message h3 {
+            color: #34D399;
+            margin-bottom: 8px;
+        }
+
+        .token-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 8px;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+            color: #A7F3D0;
+        }
+
+        .error-message {
+            display: none;
+            margin-top: 24px;
+            padding: 16px;
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            border-radius: 12px;
+            color: #F87171;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Dev Access</h1>
+        <p class="subtitle">Create a complete demo account</p>
+
+        <form id="demoForm">
+            <!-- Basic Info -->
+            <div class="form-section">
+                <h3>Basic Information</h3>
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" placeholder="E.g. Sarah Jones" required>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <label for="phoneNumber">Phone Number</label>
+                        <input type="tel" id="phoneNumber" placeholder="+919876543210" required>
+                    </div>
+                    <div class="col">
+                        <label for="dob">Date of Birth</label>
+                        <input type="date" id="dob" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <label for="gender">Gender</label>
+                        <select id="gender" required>
+                            <option value="Female">Female</option>
+                            <option value="Male">Male</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="col">
+                        <label for="maritalStatus">Status</label>
+                        <select id="maritalStatus">
+                            <option value="Single">Single</option>
+                            <option value="In a relationship">In a relationship</option>
+                            <option value="Divorced">Divorced</option>
+                            <option value="Separated">Separated</option>
+                            <option value="Widowed">Widowed</option>
+                            <option value="Prefer not to say">Prefer not to say</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Location -->
+            <div class="form-section">
+                <h3>Location</h3>
+                <div class="row">
+                    <div class="col">
+                        <label for="state">State</label>
+                        <select id="state">
+                            <option value="">Select State</option>
+                            <!-- Populated via JS -->
+                        </select>
+                    </div>
+                    <div class="col">
+                        <label for="city">City</label>
+                        <select id="city" disabled>
+                            <option value="">Select State first</option>
+                            <!-- Populated via JS -->
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Details -->
+            <div class="form-section">
+                <h3>Details & Preferences</h3>
+                <div class="row">
+                    <div class="col">
+                        <label for="interestedIn">Interested In</label>
+                        <select id="interestedIn">
+                            <option value="Men">Men</option>
+                            <option value="Women">Women</option>
+                            <option value="Everyone">Everyone</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Looking For</label>
+                    <div class="checkbox-grid" id="lookingForGrid">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Interests</label>
+                    <div class="checkbox-grid" id="interestsGrid">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Hobbies</label>
+                    <div class="checkbox-grid" id="hobbiesGrid">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="bio">Bio</label>
+                    <textarea id="bio" rows="3"
+                        placeholder="Tell us something about yourself...">Just looking for someone to share coffee with.</textarea>
+                </div>
+            </div>
+
+            <!-- Photos -->
+            <div class="form-section" style="border-bottom: none;">
+                <h3>Profile Photos</h3>
+                <div class="form-group">
+                    <label for="profileImages">Upload Images (Max 5)</label>
+                    <input type="file" id="profileImages" multiple accept="image/*" required>
+                    <p class="helper-text">Select multiple files at once.</p>
+                </div>
+            </div>
+
+            <button type="submit" id="submitBtn">Create Account</button>
+        </form>
+
+        <div id="successMessage" class="success-message">
+            <h3>Account Created! 🎉</h3>
+            <p>Use this token for authentication or just login with the phone number.</p>
+            <div class="token-box" id="tokenDisplay"></div>
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+    </div>
+
+    <script>
+        // Constants from Backend/App Config
+        const interestOptions = ['Music', 'Movies', 'Travel', 'Fitness', 'Cooking', 'Art', 'Tech', 'Books', 'Gaming', 'Outdoors'];
+        const hobbyOptions = ['Photography', 'Running', 'Yoga', 'Cycling', 'Dancing', 'Painting', 'Gardening', 'Chess', 'Coding'];
+        const lookingOptions = ['Dating', 'Friendship', 'I don’t know yet'];
+
+        // Initializer
+        function initCheckboxes() {
+            renderCheckboxes('interestsGrid', interestOptions, 'interests');
+            renderCheckboxes('hobbiesGrid', hobbyOptions, 'hobbies');
+            renderCheckboxes('lookingForGrid', lookingOptions, 'lookingFor');
+        }
+
+        function renderCheckboxes(containerId, options, name) {
+            const container = document.getElementById(containerId);
+            options.forEach(opt => {
+                const label = document.createElement('label');
+                label.className = 'checkbox-item';
+
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.name = name;
+                input.value = opt;
+
+                label.appendChild(input);
+                label.appendChild(document.createTextNode(opt));
+                container.appendChild(label);
+            });
+        }
+
+        initCheckboxes();
+
+        // City Logic
+        let citiesByState = {};
+
+        async function loadCities() {
+            try {
+                const response = await fetch('/cities.json');
+                if (!response.ok) throw new Error("Failed to load cities");
+                const data = await response.json(); // Array of {id, name, state}
+
+                // Group by state
+                data.forEach(item => {
+                    if (!citiesByState[item.state]) {
+                        citiesByState[item.state] = [];
+                    }
+                    citiesByState[item.state].push(item.name);
+                });
+
+                // Populate State Dropdown
+                const stateSelect = document.getElementById('state');
+                Object.keys(citiesByState).sort().forEach(state => {
+                    const option = document.createElement('option');
+                    option.value = state;
+                    option.textContent = state;
+                    stateSelect.appendChild(option);
+                });
+            } catch (e) {
+                console.error("Error loading cities:", e);
+                const stateSelect = document.getElementById('state');
+                const opt = document.createElement('option');
+                opt.textContent = "Error loading cities";
+                stateSelect.appendChild(opt);
+            }
+        }
+
+        loadCities();
+
+        document.getElementById('state').addEventListener('change', function () {
+            const state = this.value;
+            const citySelect = document.getElementById('city');
+            citySelect.innerHTML = '<option value="">Select City</option>';
+
+            if (state && citiesByState[state]) {
+                citySelect.disabled = false;
+                citiesByState[state].sort().forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city;
+                    option.textContent = city;
+                    citySelect.appendChild(option);
+                });
+            } else {
+                citySelect.disabled = true;
+            }
+        });
+
+        document.getElementById('demoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const successDiv = document.getElementById('successMessage');
+            const errorDiv = document.getElementById('errorMessage');
+
+            btn.textContent = 'Creating...';
+            btn.disabled = true;
+            successDiv.style.display = 'none';
+            errorDiv.style.display = 'none';
+
+            // Use FormData
+            const formData = new FormData();
+
+            formData.append('name', document.getElementById('name').value);
+            formData.append('phoneNumber', document.getElementById('phoneNumber').value);
+            formData.append('gender', document.getElementById('gender').value);
+            formData.append('dob', document.getElementById('dob').value);
+            formData.append('state', document.getElementById('state').value);
+            formData.append('city', document.getElementById('city').value);
+            formData.append('maritalStatus', document.getElementById('maritalStatus').value);
+            formData.append('interestedIn', document.getElementById('interestedIn').value);
+            formData.append('bio', document.getElementById('bio').value);
+
+            // Collect Checkboxes
+            const getChecked = (name) => {
+                return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(cb => cb.value);
+            };
+
+            getChecked('interests').forEach(v => formData.append('interests[]', v));
+            getChecked('hobbies').forEach(v => formData.append('hobbies[]', v));
+            getChecked('lookingFor').forEach(v => formData.append('lookingFor[]', v));
+
+            // Files
+            const fileInput = document.getElementById('profileImages');
+            for (let i = 0; i < fileInput.files.length; i++) {
+                formData.append('profileImages', fileInput.files[i]);
+            }
+
+            try {
+                const response = await fetch('/api/auth/create-demo-account', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    successDiv.style.display = 'block';
+                    document.getElementById('tokenDisplay').textContent = result.token;
+                    btn.textContent = 'Created Successfully';
+                    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                } else {
+                    throw new Error(result.message || 'Failed to create account');
+                }
+            } catch (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.style.display = 'block';
+                btn.textContent = 'Create Account';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

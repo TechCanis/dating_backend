@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema({
     maritalStatus: { type: String }, // e.g. Single, Divorced
     hobbies: [{ type: String }],
     lookingFor: [{ type: String }], // e.g. Relationship, Friends
+    user_type: { type: String, enum: ['user', 'demo'], default: 'user' },
     preferences: {
         ageRange: { min: { type: Number, default: 18 }, max: { type: Number, default: 99 } },
         distance: { type: Number, default: 50 }, // km
