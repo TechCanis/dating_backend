@@ -170,9 +170,11 @@ const getSentLikes = async (req, res) => {
 
     try {
         // Find matches where user1 is me, and isMatched is false (I liked them, no match from them yet)
+        // AND isRejected is not true (exclude passed users)
         const sentLikes = await Match.find({
             user1: userId,
-            isMatched: false
+            isMatched: false,
+            isRejected: { $ne: true }
         }).populate('user2');
 
         const formattedSentLikes = sentLikes.map(match => ({
