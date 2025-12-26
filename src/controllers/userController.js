@@ -167,7 +167,10 @@ const getDiscoveryUsers = async (req, res) => {
 
         // Post-processing: Override location for Demo Users
         const processedUsers = users.map(u => {
-            const userObj = u.toObject();
+            // Aggregate returns plain objects, so we don't need toObject()
+            // We clone it to avoid mutating the original array elements just in case
+            const userObj = { ...u };
+
             if (userObj.user_type === 'demo') {
                 userObj.state = user.state;
                 userObj.city = user.city;
