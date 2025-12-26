@@ -263,11 +263,43 @@ const searchUsers = async (req, res) => {
         }
 
         // Location Filter (Search)
-        if (state) query.state = state;
-        if (city) query.city = city;
+        // logic: If searching for a location, INCLUDE demo users as if they are there.
+        if (state || city) {
+            const locFilter = {};
+            if (state) locFilter.state = state;
+            if (city) locFilter.city = city;
 
-        const users = await User.find(query).limit(50); // Limit results
-        res.json(users);
+            query.$or = [
+                locFilter,
+                { user_type: 'demo' }
+            ];
+        }
+
+        const users = await User.find(query).limit(50);
+
+        // Post-processing: Override location for Demo Users matches
+        const processedUsers = users.map(u => {
+            const userObj = u.toObject(); // Search uses .find(), so toObject() is valid here (unlike aggregate)
+            if (userObj.user_type === 'demo') {
+                // If the search specified a city, adopt it. 
+                // If not (e.g. only state), adopt user's city or the searched state?
+                // Let's adopt the CURRENT USER's location or the SEARCHED location?
+                // User expectation: "Show demo accounts... with same city name as user". 
+                // So we should probably use the User's actual location? Or the Searched location?
+                // If I search "New York", I expect results to be "New York".
+                if (city) userObj.city = city;
+                if (state) userObj.state = state;
+
+                // If search didn't specify, maybe fallback to user's?
+                if (!city && currentUser.city) userObj.city = currentUser.city;
+                if (!state && currentUser.state) userObj.state = currentUser.state;
+
+                userObj.distance = Math.floor(Math.random() * 10) + 1;
+            }
+            return userObj;
+        });
+
+        res.json(processedUsers);
 
     } catch (error) {
         console.error('Search Error:', error);
