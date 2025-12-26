@@ -65,6 +65,29 @@ const sendMessage = async (req, res) => {
             createdAt: message.createdAt
         });
 
+        // NOTIFICATION LOGIC
+        try {
+            const recipient = await require('../models/User').findById(recipientId);
+            if (recipient && recipient.fcmToken) {
+                const sender = await require('../models/User').findById(senderId);
+                const senderName = sender ? sender.name : 'Someone';
+
+                await require('../services/notificationService').sendNotification(
+                    recipient.fcmToken,
+                    `New message from ${senderName}`,
+                    text,
+                    {
+                        type: 'chat_message',
+                        matchId: match._id.toString(),
+                        senderId: senderId
+                    }
+                );
+            }
+        } catch (notifError) {
+            console.error('Notification Error:', notifError);
+            // Don't fail the request if notification fails
+        }
+
         // Emit to sender (optional, can be useful for confirmation or multi-device sync)
         io.to(senderId).emit('new_message', {
             _id: message._id,
