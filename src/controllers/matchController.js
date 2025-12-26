@@ -57,7 +57,47 @@ const likeUser = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+// @desc    Reject a user (Pass)
+// @route   POST /api/matches/reject
+// @access  Private
+const rejectUser = async (req, res) => {
+    const { rejectedUserId } = req.body;
+    const currentUserId = req.user._id;
 
+    try {
+        const existingInteraction = await Match.findOne({
+            user1: currentUserId,
+            user2: rejectedUserId
+        });
+
+        if (existingInteraction) {
+            return res.status(400).json({ message: 'You already interacted with this user' });
+        }
+
+        // Create a "Pass" interaction
+        // We use the Match model but maybe add a status field or just imply based on isMatched=false?
+        // But normal likes are also isMatched=false initially.
+        // Let's assume we add a 'status' field to Match model: 'pending', 'matched', 'rejected'.
+        // OR simpler given constraints: Just create a Match and maybe we need a way to distinguish Like vs Pass.
+
+        // Let's add 'action' or 'status' to Match Schema or simply use a separate Pass mechanism.
+        // Given current Match Schema is: user1, user2, isMatched.
+        // If I 'Pass', I don't want to match ever. 
+        // Force-fitting into Match model without schema change is risky.
+        // Let's add `isRejected: true` to the Match document we create. *We need to update User/Match model or just add the field dynamically if Schema is loose*
+        // checking the Match model first is safer.
+        await Match.create({
+            user1: currentUserId,
+            user2: rejectedUserId,
+            isMatched: false,
+            isRejected: true // Need to ensure Schema allows this or is flexible
+        });
+
+        res.json({ message: 'User rejected' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 // @desc    Get all matches
 // @route   GET /api/matches
 // @access  Private
@@ -152,4 +192,4 @@ const getSentLikes = async (req, res) => {
     }
 };
 
-module.exports = { likeUser, getMatches, getPendingLikes, getSentLikes };
+module.exports = { likeUser, rejectUser, getMatches, getPendingLikes, getSentLikes };

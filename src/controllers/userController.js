@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Match = require('../models/Match');
 
 // @desc    Get user profile
 // @route   GET /api/users/profile
@@ -99,9 +100,28 @@ const getDiscoveryUsers = async (req, res) => {
     const skip = (page - 1) * limit;
 
     try {
-        // Base Filter: Always exclude current user
+        // 0. Get IDs of users already liked/rejected/matched
+        // We look for any Match document where current user is user1 (User Liked X)
+        // OR user2 (X Liked User -> we probably shouldn't show them in discovery if we haven't acted? 
+        // Actually, if someone liked me, they should appear in "Pending Likes", not necessarily discovery? 
+        // Standard app behavior: IF they liked me, they might still show up in discovery usually with a "Liked you" tag or just normal.
+        // BUT the user request says: "once i reject or like any account then don't show that profile again".
+
+        // So we filter out anyone who is in 'user2' position of a match initiated by ME (user1).
+        // AND anyone I explicitly "Rejected" (Need a Rejected model or status).
+
+        // Since we don't have a "Reject" model yet, let's assume 'likeUser' creates a Match.
+        // We need a 'rejectUser' endpoint which creates a Match with explicit 'isRejected' flag or similar.
+        // For now, let's filter out users I have ALREADY LIKED (User1 = Me).
+
+        const interactions = await Match.find({ user1: user._id }).select('user2');
+        const interactedUserIds = interactions.map(i => i.user2);
+
+        // Also exclude myself
+        interactedUserIds.push(user._id);
+
         let query = {
-            _id: { $ne: user._id }
+            _id: { $nin: interactedUserIds }
         };
 
         // 1. Gender Filter
@@ -119,22 +139,45 @@ const getDiscoveryUsers = async (req, res) => {
 
         // 3. Photos Only Filter
         if (user.preferences.showPhotosOnly) {
-            query.profileImages = { $not: { $size: 0 } }; // Array not empty
+            query.profileImages = { $not: { $size: 0 } };
         }
 
-        // 4. Location (State/City) Filter
-        // If expandSearch is FALSE, we strict filter by state AND city if available
+        // 4. Location Filter (Complex with Demo Users)
+        // Logic: Real users must match location if strict. Demo users (user_type='demo') are always valid but we override their location in memory.
+
         if (!user.preferences.expandSearch) {
-            if (user.state) query.state = user.state;
-            if (user.city) query.city = user.city;
+            // Strict Location: Match State/City OR be a Demo User
+            // MongoDB query for: (State=X AND City=Y) OR (user_type='demo')
+            // But we still apply other filters.
+
+            query.$or = [
+                { state: user.state, city: user.city },
+                { user_type: 'demo' }
+            ];
         }
 
-        // Execute Query with Pagination
-        const users = await User.find(query)
-            .skip(skip)
-            .limit(limit);
+        // Execute Query using Aggregation Sample for Randomness
+        // Note: $sample does NOT work with skip because it reshuffles every time.
+        // We accept that "page 2" is just "next random batch".
+        // With 'interactedUserIds' filtering, the pool shrinks as user interacts.
+        const users = await User.aggregate([
+            { $match: query },
+            { $sample: { size: limit } }
+        ]);
 
-        res.json(users);
+        // Post-processing: Override location for Demo Users
+        const processedUsers = users.map(u => {
+            const userObj = u.toObject();
+            if (userObj.user_type === 'demo') {
+                userObj.state = user.state;
+                userObj.city = user.city;
+                // Also can randomize distance if needed
+                userObj.distance = Math.floor(Math.random() * 10) + 1;
+            }
+            return userObj;
+        });
+
+        res.json(processedUsers);
 
     } catch (error) {
         console.error('Discovery Error:', error);

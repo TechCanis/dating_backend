@@ -4,6 +4,7 @@ const matchSchema = new mongoose.Schema({
     user1: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     user2: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     isMatched: { type: Boolean, default: false }, // True if both liked
+    isRejected: { type: Boolean, default: false }, // True if User1 passed on User2
     lastMessage: { type: String },
     lastMessageTime: { type: Date },
     unreadCount_user1: { type: Number, default: 0 },
