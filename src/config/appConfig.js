@@ -87,7 +87,7 @@ const appConfig = {
     // Global Config / Keys
     // Ideally from process.env, falling back to the test key for now as per instructions
     keys: {
-        razorpayKeyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_1DP5mmOlF5G5ag'
+        razorpayKeyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_RwYzTXUoFLLWp0'
     },
 
     // Default Limits
@@ -98,7 +98,54 @@ const appConfig = {
     },
 
     // OTP Mode: 0=Test, 1=Firebase, 2=Otpless
-    otpMode: process.env.OTP_MODE ? parseInt(process.env.OTP_MODE) : 1
+    otpMode: process.env.OTP_MODE ? parseInt(process.env.OTP_MODE) : 1,
+
+    // Legal Content (Editable from Backend)
+    legal: {
+        privacyPolicy: `
+# Privacy Policy
+
+**1. Information We Collect**
+We collect information you provide directly to us, such as when you create an account, update your profile, or communicate with us. This may include your name, phone number, gender, date of birth, photos, and interests.
+
+**2. How We Use Your Information**
+We use your information to:
+*   Provide, maintain, and improve our services.
+*   Match you with other users.
+*   Send you notifications and updates.
+*   Monitor and analyze trends and usage.
+
+**3. Sharing of Information**
+We do not share your personal information with third parties except as described in this policy or with your consent. Your profile information (name, age, photos, bio) is visible to other users of the app.
+
+**4. Security**
+We take reasonable measures to help protect information about you from loss, theft, misuse and unauthorized access.
+
+**5. Contact Us**
+If you have any questions about this Privacy Policy, please contact us at support@lovza.com.
+        `,
+        termsConditions: `
+# Terms and Conditions
+
+**1. Acceptance of Terms**
+By accessing or using our app, you agree to be bound by these Terms. If you do not agree to these Terms, you may not access or use the Service.
+
+**2. Eligibility**
+You must be at least 18 years old to create an account on LovZa. By creating an account, you represent and warrant that you are capable of entering into a binding agreement.
+
+**3. User Content**
+You are solely responsible for the content you post. You agree not to post content that is hate speech, threatening, sexually explicit, or pornographic.
+
+**4. Prohibited Activities**
+You agree not to use the Service for any illegal purpose or to harass, abuse, or harm another person.
+
+**5. Termination**
+We reserve the right to terminate or suspend your account at any time if you violate these Terms.
+
+**6. Disclaimer**
+The Service is provided "as is" without warranties of any kind. We do not guarantee that the App will be safe or secure.
+        `
+    }
 };
 
 module.exports = appConfig;

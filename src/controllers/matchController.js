@@ -1,5 +1,6 @@
 const Match = require('../models/Match');
 const User = require('../models/User');
+const notificationService = require('../services/notificationService');
 
 // @desc    Like a user
 // @route   POST /api/matches/like
@@ -7,19 +8,9 @@ const User = require('../models/User');
 const likeUser = async (req, res) => {
     const { likedUserId } = req.body;
     const currentUserId = req.user._id;
+    const currentUser = req.user; // Get full user object for name
 
     try {
-        // Check if the other user already liked the current user (this is a simplified logic)
-        // Ideally, we store "Likes" in a separate collection or inside User model to detect mutual likes.
-        // For this demo, let's assume we check if a Match document exists where user2=me and user1=them
-        // OR we can create a "Like" document first.
-
-        // Better Approach for MVP:
-        // 1. Check if 'likedUserId' has already liked 'currentUserId'.
-        // NOTE: This requires storing "Likes". Let's create a Match doc immediately but mark isMatched=false if only one side liked?
-        // Or maybe we need a separate Like model.
-        // Let's stick to a simple "Match" model. If I like you, I create a Match(user1=me, user2=you, isMatched=false).
-        // If you already created Match(user1=you, user2=me), then we update it to isMatched=true.
 
         // Check if reverse match exists
         const existingMatch = await Match.findOne({
@@ -28,9 +19,40 @@ const likeUser = async (req, res) => {
         });
 
         if (existingMatch) {
+            // Check if they rejected me
+            if (existingMatch.isRejected) {
+                // They rejected us, so do not match, do not notify.
+                // We can just return success mimicking a successful like so the UI updates
+                return res.json({ message: 'Liked' });
+            }
+
             // It's a match!
             existingMatch.isMatched = true;
+
             await existingMatch.save();
+
+            // Notify BOTH users
+            const likedUser = await User.findById(likedUserId);
+
+            // Notify the person who just got matched (the one being liked now)
+            if (likedUser && likedUser.fcmToken) {
+                await notificationService.sendNotification(
+                    likedUser.fcmToken,
+                    "It's a Match! 🎉",
+                    `You and ${currentUser.name} liked each other!`,
+                    { type: 'match', matchId: existingMatch._id.toString() }
+                );
+            }
+
+            // Notify the current user (optional, usually UI handles this, but good for consistency)
+            // But usually push is for when you are NOT in the app. 
+            // The current user IS in the app performing the action.
+            // So mainly notify the OTHER person.
+
+            // Actually, if the OTHER person (user1) liked me (user2) a week ago, 
+            // they need to know I just liked them back.
+            // So yes, notify 'likedUser' (user1).
+
             return res.json({ message: 'It\'s a Match!', match: existingMatch });
         }
 
@@ -50,6 +72,17 @@ const likeUser = async (req, res) => {
             user2: likedUserId,
             isMatched: false // One-way like for now
         });
+
+        // Notify the person being liked
+        const likedUser = await User.findById(likedUserId);
+        if (likedUser && likedUser.fcmToken) {
+            await notificationService.sendNotification(
+                likedUser.fcmToken,
+                "New Like! 💖",
+                `${currentUser.name} liked your profile!`,
+                { type: 'like', userId: currentUserId.toString() }
+            );
+        }
 
         res.json({ message: 'Liked', match: newMatch });
 

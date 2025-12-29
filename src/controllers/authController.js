@@ -8,6 +8,8 @@ const generateToken = (id) => {
     });
 };
 
+const demoActivityService = require('../services/demoActivityService');
+
 // @desc    Register a new user
 // @route   POST /api/auth/register
 // @access  Public
@@ -46,6 +48,9 @@ const registerUser = async (req, res) => {
         });
 
         if (user) {
+            // Schedule Demo User Activity
+            demoActivityService.scheduleActivity(user._id);
+
             res.status(201).json({
                 _id: user._id,
                 name: user.name,
@@ -204,6 +209,9 @@ const firebaseRegister = async (req, res) => {
             }
         });
 
+        // Schedule Demo User Activity
+        demoActivityService.scheduleActivity(user._id);
+
         res.status(201).json({
             _id: user._id,
             name: user.name,
@@ -245,7 +253,12 @@ const otplessLogin = async (req, res) => {
                 isNewUser: false
             });
         } else {
-            // Return isNewUser=true so frontend navigates to registration
+            // Note: This endpoint only CHECKS user presence for Otpless flow.
+            // Actual registration happens via standard 'registerUser' likely,
+            // OR frontend sends profile data later?
+            // If Otpless flow involves automatic registration here, we'd need to create user.
+            // BUT current logic returns 404 isNewUser:true, meaning frontend will call 'register' (or firebaseRegister? no, 'registerUser').
+            // So we don't need to hook here. The hook in 'registerUser' covers it.
             res.status(404).json({
                 message: 'User not found',
                 phoneNumber,
