@@ -13,6 +13,11 @@ const sendMessage = async (req, res) => {
         return res.status(400).json({ message: 'Text and recipientId are required' });
     }
 
+    // Check Premium Status
+    if (!req.user.isPremium) {
+        return res.status(403).json({ message: 'Premium subscription required to send messages.' });
+    }
+
     try {
         // 1. Find or Create Match
         let match = await Match.findOne({
