@@ -16,7 +16,7 @@ const demoActivityService = require('../services/demoActivityService');
 const registerUser = async (req, res) => {
     // ... (existing register implementation, unchanged for now or update if needed)
     // ... (existing register implementation, unchanged for now or update if needed)
-    const { phoneNumber, name, gender, age, bio, interests, profileImages, state, interestedIn, maritalStatus, hobbies, lookingFor } = req.body;
+    const { phoneNumber, name, gender, age, bio, interests, profileImages, state, city, interestedIn, maritalStatus, hobbies, lookingFor } = req.body;
 
     try {
         const userExists = await User.findOne({ phoneNumber });
@@ -39,11 +39,16 @@ const registerUser = async (req, res) => {
             interests,
             profileImages,
             state,
+            city: req.body.city,
             maritalStatus,
             hobbies,
             lookingFor,
             preferences: {
-                gender: interestedIn || 'Everyone'
+                gender: interestedIn || 'Everyone',
+                ageRange: { min: 18, max: 99 },
+                distance: 50,
+                showPhotosOnly: false,
+                expandSearch: true
             }
         });
 
@@ -201,11 +206,16 @@ const firebaseRegister = async (req, res) => {
             interests,
             profileImages,
             state,
+            city: profileData.city,
             maritalStatus,
             hobbies,
             lookingFor,
             preferences: {
-                gender: interestedIn || 'Everyone'
+                gender: interestedIn || 'Everyone',
+                ageRange: { min: 18, max: 99 },
+                distance: 50,
+                showPhotosOnly: false,
+                expandSearch: true
             }
         });
 
@@ -334,7 +344,9 @@ const createDemoAccount = async (req, res) => {
             lookingFor: lookingFor || [],
             user_type: 'demo',
             preferences: {
-                gender: interestedIn || 'Everyone'
+                gender: interestedIn || 'Everyone',
+                ageRange: { min: 18, max: 99 },
+                distance: 50
             }
         });
 
