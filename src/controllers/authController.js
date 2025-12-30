@@ -45,7 +45,10 @@ const registerUser = async (req, res) => {
             lookingFor,
             preferences: {
                 gender: interestedIn || 'Everyone',
-                ageRange: { min: 18, max: 99 },
+                ageRange: {
+                    min: req.body.preferredAgeMin || 18,
+                    max: req.body.preferredAgeMax || 60
+                },
                 distance: 50,
                 showPhotosOnly: false,
                 expandSearch: true
@@ -212,7 +215,10 @@ const firebaseRegister = async (req, res) => {
             lookingFor,
             preferences: {
                 gender: interestedIn || 'Everyone',
-                ageRange: { min: 18, max: 99 },
+                ageRange: {
+                    min: profileData.preferredAgeMin || 18,
+                    max: profileData.preferredAgeMax || 60
+                },
                 distance: 50,
                 showPhotosOnly: false,
                 expandSearch: true
