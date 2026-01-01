@@ -186,20 +186,29 @@ By accessing or using the Service, you agree to be bound by these Terms. If you 
 *   **Legal Capacity:** You confirm that you have the right, authority, and capacity to enter into this agreement and to abide by all of the terms and conditions.
 *   **No Previous Ban:** You represent that you have not been previously removed or banned from LovZa.
 
-## 3. YOUR ACCOUNT
+## 3. CHILD SAFETY AND ZERO TOLERANCE POLICY
+
+**LovZa is committed to maintaining a safe environment and has a ZERO TOLERANCE policy towards Child Sexual Abuse and Exploitation (CSAE).**
+
+*   **Strict Prohibition:** Any content depicting, promoting, or normalizing child sexual abuse or exploitation is strictly prohibited.
+*   **Immediate Action:** Any user found sharing or promoting CSAM will be immediately and permanently banned.
+*   **Reporting to Authorities:** We will report any instances of CSAE to the National Center for Missing & Exploited Children (NCMEC) and relevant law enforcement authorities.
+*   **Automated Detection:** We employ automated scanning and moderation tools to detect and remove harmful content.
+
+## 4. YOUR ACCOUNT
 
 *   **Security:** You are responsible for maintaining the confidentiality of your login credentials. You account is for your personal use only.
 *   **Accuracy:** You agree to provide accurate, current, and complete information during the registration process and to update such information to keep it accurate.
 *   **Termination:** We reserve the right to terminate or suspend your account immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms.
 
-## 4. SUBSCRIPTIONS AND PURCHASES
+## 5. SUBSCRIPTIONS AND PURCHASES
 
 *   **Premium Features:** LovZa may offer products and services for purchase ("In-App Purchases") such as "Monthly", "Quarterly", or "Yearly" subscriptions.
 *   **Payment:** Payments will be charged to your designated payment method upon confirmation of purchase.
 *   **Renewal:** Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period.
 *   **Refunds:** All purchases are generally non-refundable unless required by law or at our sole discretion.
 
-## 5. USER CONDUCT
+## 6. USER CONDUCT
 
 You agree NOT to:
 *   Use the Service for any illegal or unauthorized purpose.
@@ -209,32 +218,32 @@ You agree NOT to:
 *   Impersonate any person or entity.
 *   Create another account if we have already terminated your account, unless you have our permission.
 
-## 6. CONTENT
+## 7. CONTENT
 
 *   **Your Content:** You retain ownership of the content you upload (photos, bio). By posting it, you grant us a worldwide, non-exclusive, royalty-free license to use, display, and distribute said content in connection with the Service.
 *   **Monitoring:** We have the right, but not the obligation, to monitor and review User Content. We may remove any content that violates these Terms or is deemed offensive or harmful.
 
-## 7. DISCLAIMERS
+## 8. DISCLAIMERS
 
 *   **"AS IS" Basis:** The Service is provided on an "AS IS" and "AS AVAILABLE" basis. We disclaim all warranties of any kind, whether express or implied.
 *   **No Guarantee of Matches:** We do not guarantee that you will find a match or that matches will be compatible.
 *   **User Interactions:** You are solely responsible for your interactions with other users. We do not conduct criminal background checks on our users. **ALWAYS USE CAUTION AND COMMON SENSE WHEN INTERACTING WITH STRANGERS.**
 
-## 8. LIMITATION OF LIABILITY
+## 9. LIMITATION OF LIABILITY
 
 In no event shall LovZa, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your access to or use of or inability to access or use the Service.
 
-## 9. GOVERNING LAW
+## 10. GOVERNING LAW
 
 These Terms shall be governed and construed in accordance with the laws of **India**, without regard to its conflict of law provisions.
 
-## 10. CHANGES TO TERMS
+## 11. CHANGES TO TERMS
 
 We reserve the right, at our sole discretion, to modify or replace these Terms at any time. By continuing to access or use our Service after those revisions become effective, you agree to be bound by the revised terms.
 
-## 11. CONTACT US
+## 12. CONTACT US
 
-If you have any questions about these Terms, please contact us at **support@lovza.com**.
+If you have questions about these Terms, please contact us at **support@lovza.com**.
         `
     }
 
