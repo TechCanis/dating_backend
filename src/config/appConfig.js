@@ -87,7 +87,8 @@ const appConfig = {
     // Global Config / Keys
     // Ideally from process.env, falling back to the test key for now as per instructions
     keys: {
-        razorpayKeyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_RwYzTXUoFLLWp0'
+        razorpayKeyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_RwYzTXUoFLLWp0',
+        googlePlayLicenseKey: process.env.GOOGLE_PLAY_LICENSE_KEY || ''
     },
 
     // Default Limits
