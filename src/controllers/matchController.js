@@ -148,13 +148,20 @@ const getMatches = async (req, res) => {
                     ]
                 }
             ]
-        }).populate('user1', 'name profileImages age bio interests state').populate('user2', 'name profileImages age bio interests state');
+        }).populate('user1', 'name profileImages age bio interests state city user_type').populate('user2', 'name profileImages age bio interests state city user_type');
 
         // Format results to show "the other person"
         const formattedMatches = matches.map(match => {
             const isUser1 = match.user1._id.toString() === userId;
-            const otherUser = isUser1 ? match.user2 : match.user1;
+            const otherUserDoc = isUser1 ? match.user2 : match.user1;
             const unread = isUser1 ? (match.unreadCount_user1 || 0) : (match.unreadCount_user2 || 0);
+
+            // Handle Demo User location masking
+            let otherUser = otherUserDoc ? otherUserDoc.toObject() : null;
+            if (otherUser && otherUser.user_type === 'demo') {
+                otherUser.city = req.user.city;
+                otherUser.state = req.user.state;
+            }
 
             return {
                 _id: match._id,
@@ -180,17 +187,25 @@ const getPendingLikes = async (req, res) => {
         const pendingLikes = await Match.find({
             user2: userId,
             isMatched: false
-        }).populate('user1', 'name age profileImages state');
+        }).populate('user1', 'name age profileImages state city user_type');
 
-        const formattedLikes = pendingLikes.map(match => ({
-            _id: match.user1._id,
-            matchDocId: match._id,
-            name: match.user1.name,
-            age: match.user1.age,
-            profileImages: match.user1.profileImages,
-            state: match.user1.state,
-            likedAt: match.createdAt
-        }));
+        const formattedLikes = pendingLikes.map(match => {
+            let u = match.user1.toObject();
+            if (u.user_type === 'demo') {
+                u.city = req.user.city;
+                u.state = req.user.state;
+            }
+            return {
+                _id: u._id,
+                matchDocId: match._id,
+                name: u.name,
+                age: u.age,
+                profileImages: u.profileImages,
+                state: u.state,
+                city: u.city,
+                likedAt: match.createdAt
+            };
+        });
 
         res.json(formattedLikes);
     } catch (error) {
@@ -210,16 +225,24 @@ const getSentLikes = async (req, res) => {
             isRejected: { $ne: true }
         }).populate('user2');
 
-        const formattedSentLikes = sentLikes.map(match => ({
-            _id: match.user2._id,
-            matchDocId: match._id,
-            name: match.user2.name,
-            age: match.user2.age,
-            profileImages: match.user2.profileImages,
-            state: match.user2.state,
-            bio: match.user2.bio,
-            likedAt: match.createdAt
-        }));
+        const formattedSentLikes = sentLikes.map(match => {
+            let u = match.user2.toObject();
+            if (u.user_type === 'demo') {
+                u.city = req.user.city;
+                u.state = req.user.state;
+            }
+            return {
+                _id: u._id,
+                matchDocId: match._id,
+                name: u.name,
+                age: u.age,
+                profileImages: u.profileImages,
+                state: u.state,
+                city: u.city,
+                bio: u.bio,
+                likedAt: match.createdAt
+            };
+        });
 
         res.json(formattedSentLikes);
     } catch (error) {

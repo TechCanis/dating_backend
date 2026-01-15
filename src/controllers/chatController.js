@@ -169,15 +169,22 @@ const getAllConversations = async (req, res) => {
                 { $or: [{ user1: userId }, { user2: userId }] },
                 { lastMessage: { $exists: true, $ne: null } }
             ]
-        }).populate('user1', 'name profileImages age bio interests state').populate('user2', 'name profileImages age bio interests state')
+        }).populate('user1', 'name profileImages age bio interests state city user_type').populate('user2', 'name profileImages age bio interests state city user_type')
             .sort({ lastMessageTime: -1 });
 
         const formattedMatches = matches.map(match => {
             const isUser1 = match.user1._id.toString() === userId;
-            const otherUser = isUser1 ? match.user2 : match.user1;
+            const otherUserDoc = isUser1 ? match.user2 : match.user1;
             const unread = isUser1 ? (match.unreadCount_user1 || 0) : (match.unreadCount_user2 || 0);
 
             console.log(`Match ${match._id}: isUser1=${isUser1}, Unread=${unread}`);
+
+            // Handle Demo User location masking
+            let otherUser = otherUserDoc ? otherUserDoc.toObject() : null;
+            if (otherUser && otherUser.user_type === 'demo') {
+                otherUser.city = req.user.city;
+                otherUser.state = req.user.state;
+            }
 
             return {
                 _id: match._id,

@@ -325,8 +325,11 @@ const updateFcmToken = async (req, res) => {
 // @access  Private
 const deleteUser = async (req, res) => {
     try {
+        await Match.deleteMany({
+            $or: [{ user1: req.user._id }, { user2: req.user._id }]
+        });
         await User.findByIdAndDelete(req.user._id);
-        res.json({ message: 'User deleted' });
+        res.json({ message: 'User and associated data deleted' });
     } catch (error) {
         res.status(500).json({ message: 'Error deleting user' });
     }
