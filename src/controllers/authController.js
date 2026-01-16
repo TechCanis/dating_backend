@@ -102,7 +102,8 @@ const loginUser = async (req, res) => {
         const user = await User.findOne({ phoneNumber });
 
         if (user) {
-            // FIXED DEMO OTP
+            // FIXED DEMO OTP - DISABLED FOR PRODUCTION
+            /*
             if (otp === '123456') {
                 res.json({
                     _id: user._id,
@@ -113,6 +114,8 @@ const loginUser = async (req, res) => {
             } else {
                 res.status(401).json({ message: 'Invalid OTP' });
             }
+            */
+            res.status(400).json({ message: 'Direct Login Disabled. Use Firebase/Otpless.' });
         } else {
             res.status(404).json({ message: 'User not found. Please register.' });
         }
