@@ -60,7 +60,8 @@ const appConfig = {
             durationDays: 30,
             durationLabel: '/ month',
             features: ['Unlimited Likes', 'See Who Likes You', 'Priority Showing'],
-            isPopular: false
+            isPopular: false,
+            googlePlayProductId: 'premium_monthly'
         },
         {
             id: 'quarterly',
@@ -70,7 +71,8 @@ const appConfig = {
             durationDays: 90,
             durationLabel: '/ 3 months',
             features: ['Save 33%', 'Unlimited Likes', 'See Who Likes You'],
-            isPopular: false
+            isPopular: false,
+            googlePlayProductId: 'premium_quarterly'
         },
         {
             id: 'yearly',
@@ -80,7 +82,8 @@ const appConfig = {
             durationDays: 365,
             durationLabel: '/ year',
             features: ['Best Value', 'Save 45%', 'Travel Mode', 'No Ads Forever'],
-            isPopular: true
+            isPopular: true,
+            googlePlayProductId: 'premium_yearly'
         }
     ],
 
